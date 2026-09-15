@@ -171,7 +171,17 @@ async function saveCloud(){if(!cloud||!currentUser||cloudHydrating)return false;
 function saveNow(){const ok=saveLocal();if(ok && currentUser){clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(saveCloud,180)}return ok}
 let saveTimer=null;
 function scheduleSave(){if(!$('#autoSave').checked)return;clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,80)}
-function supabaseReady(){return !!(window.supabase?.createClient && window.SUPABASE_CONFIG?.url && window.SUPABASE_CONFIG?.publishableKey)}
+function supabaseReady(){
+  return !!(
+    window.supabase &&
+    typeof window.supabase.createClient === 'function' &&
+    window.SUPABASE_CONFIG &&
+    typeof window.SUPABASE_CONFIG.url === 'string' &&
+    window.SUPABASE_CONFIG.url.length > 0 &&
+    typeof window.SUPABASE_CONFIG.publishableKey === 'string' &&
+    window.SUPABASE_CONFIG.publishableKey.length > 0
+  );
+  }
 function setCloudStatus(text){const el=$('#cloudStatus');if(el)el.textContent=text}
 function openAuth(){if($('#authOverlay'))$('#authOverlay').classList.add('open');$('#authMessage').textContent='';updateAuthMode()}
 function closeAuth(){if($('#authOverlay'))$('#authOverlay').classList.remove('open')}
@@ -198,7 +208,7 @@ async function signedOut(){currentUser=null;if(cloudChannel&&cloud){await cloud.
 async function signedIn(user){currentUser=user;localStorage.setItem('shiftPlannerAuthChoice','account');closeAuth();$('#loginBtn').textContent='Выйти';$('#authClose').style.display='inline-block';setCloudStatus('☁️ Подключение…');await hydrateFromCloud();subscribeCloud()}
 async function initCloud(){
   if(!supabaseReady()){setCloudStatus('Гостевой режим · Supabase не настроен');return}
-  cloud=window.supabase.createClient(SUPABASE_CONFIG.url,SUPABASE_CONFIG.publishableKey);
+  cloud=window.supabase.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.publishableKey);
   const {data:{session}}=await cloud.auth.getSession();if(session?.user)await signedIn(session.user);
   cloud.auth.onAuthStateChange(async (event,session)=>{if(session?.user && event!=='INITIAL_SESSION')await signedIn(session.user);else if(!session?.user && event!=='INITIAL_SESSION')await signedOut()});
 }
