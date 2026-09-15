@@ -190,15 +190,74 @@ function updateAuthMode(){
 }
 function authMessage(text,kind=''){const e=$('#authMessage');e.textContent=text;e.style.color=kind==='error'?'var(--red)':'var(--muted)'}
 async function performAuth(){
-  if(!supabaseReady()){authMessage('Supabase ещё не настроен: заполните config.js. Гостевой режим работает без него.','error');return}
-  const email=$('#authEmail').value.trim(),password=$('#authPassword').value; if(!email||!password){authMessage('Введите email и пароль.','error');return}
+  const cfg = window.SUPABASE_CONFIG;
+
+  if(!window.supabase || typeof window.supabase.createClient !== 'function'){
+    authMessage('Не загрузилась библиотека Supabase.','error');
+    return;
+  }
+
+  if(!cfg || !cfg.url || !cfg.publishableKey){
+    authMessage('Не загружен config.js с настройками Supabase.','error');
+    return;
+  }
+
+  if(!cloud){
+    try{
+      cloud = window.supabase.createClient(
+        cfg.url,
+        cfg.publishableKey
+      );
+    }catch(e){
+      authMessage('Ошибка подключения к Supabase: ' + (e.message || e),'error');
+      return;
+    }
+  }
+
+  const email=$('#authEmail').value.trim();
+  const password=$('#authPassword').value;
+
+  if(!email || !password){
+    authMessage('Введите email и пароль.','error');
+    return;
+  }
+
   $('#authSubmit').disabled=true;
+
   try{
-    if(authMode==='register'){const name=$('#authName').value.trim();const {data,error}=await cloud.auth.signUp({email,password,options:{data:{display_name:name},emailRedirectTo:location.href}});if(error)throw error;authMessage(data.session?'Аккаунт создан.':'Аккаунт создан. Проверьте почту для подтверждения.');}
-    else{const {error}=await cloud.auth.signInWithPassword({email,password});if(error)throw error;}
-  }catch(e){authMessage(e.message||'Ошибка авторизации','error')}finally{$('#authSubmit').disabled=false}
-}
-async function resetPassword(){if(!supabaseReady()){authMessage('Сначала настройте Supabase.','error');return}const email=$('#authEmail').value.trim();if(!email){authMessage('Сначала введите email.','error');return}const {error}=await cloud.auth.resetPasswordForEmail(email,{redirectTo:location.href});authMessage(error?error.message:'Ссылка для сброса отправлена на почту.',error?'error':'')}
+    if(authMode==='register'){
+      const name=$('#authName').value.trim();
+
+      const {data,error}=await cloud.auth.signUp({
+        email,
+        password,
+        options:{
+          data:{display_name:name},
+          emailRedirectTo:location.href
+        }
+      });
+
+      if(error) throw error;
+
+      authMessage(
+        data.session
+          ? 'Аккаунт создан.'
+          : 'Аккаунт создан. Проверьте почту для подтверждения.'
+      );
+    }else{
+      const {error}=await cloud.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if(error) throw error;
+    }
+  }catch(e){
+    authMessage(e.message || 'Ошибка авторизации','error');
+  }finally{
+    $('#authSubmit').disabled=false;
+  }
+}function resetPassword(){if(!supabaseReady()){authMessage('Сначала настройте Supabase.','error');return}const email=$('#authEmail').value.trim();if(!email){authMessage('Сначала введите email.','error');return}const {error}=await cloud.auth.resetPasswordForEmail(email,{redirectTo:location.href});authMessage(error?error.message:'Ссылка для сброса отправлена на почту.',error?'error':'')}
 function localPayload(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return null;try{return JSON.parse(raw)}catch{return null}}
 function applyPayload(x){if(!x)return;const s=x.settings||{};if(s.start!==undefined)$('#start').value=s.start;if(s.months!==undefined)$('#months').value=s.months;if(s.mode){const r=$(`input[name=mode][value="${s.mode}"]`);if(r)r.checked=true}if(s.pattern!==undefined)$('#pattern').value=s.pattern;if(s.customCycle!==undefined)$('#customCycle').value=s.customCycle;if(s.rateType!==undefined)$('#rateType').value=s.rateType;if(s.rate!==undefined)$('#rate').value=s.rate;if(s.bonus!==undefined)$('#bonus').value=s.bonus;if(s.tax!==undefined)$('#tax').value=s.tax;if(s.autoSave!==undefined)$('#autoSave').checked=!!s.autoSave;if(s.hardAfterEdit!==undefined)$('#hardAfterEdit').checked=!!s.hardAfterEdit;renderShiftTypes(s.shiftTypes||defaultShiftTypes());if(Array.isArray(s.weekly))$$('#weekChecks input').forEach(x=>x.checked=s.weekly.includes(+x.value));state.overrides=x.overrides&&typeof x.overrides==='object'?x.overrides:{};state.actual=x.actual&&typeof x.actual==='object'?x.actual:{};if(/^\d{4}-\d{2}$/.test(x.view)){const [y,m]=x.view.split('-').map(Number);state.view=new Date(y,m-1,1)}else if($('#start').value)state.view=parseDate($('#start').value);applyModeUI();render()}
 async function fetchCloudData(){if(!cloud||!currentUser)return null;const {data,error}=await cloud.from(CLOUD_TABLE).select('data,updated_at').eq('user_id',currentUser.id).maybeSingle();if(error)throw error;return data?.data||null}
