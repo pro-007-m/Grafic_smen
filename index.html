@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="График смен">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>График смен + зарплата</title>
+<style>
+:root{--bg:#f5f7fb;--panel:#fff;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#2563eb;--accent2:#eff6ff;--green:#16a34a;--red:#dc2626;--orange:#d97706;--input:#fff;--soft:#fafafa;--shadow:rgba(0,0,0,.04)}
+:root[data-theme="dark"]{--bg:#0f172a;--panel:#111827;--text:#e5e7eb;--muted:#9ca3af;--line:#334155;--accent:#60a5fa;--accent2:#172554;--green:#4ade80;--red:#f87171;--orange:#fbbf24;--input:#0b1220;--soft:#172033;--shadow:rgba(0,0,0,.22)}
+*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);transition:background .18s,color .18s} button,input,select{color:inherit}
+header{padding:20px 28px 12px;max-width:1500px;margin:auto}.headbar{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.device-pill{font-size:12px;color:var(--muted);margin-top:8px} h1{margin:0 0 6px;font-size:28px} h2{margin:0 0 14px;font-size:19px} p{margin:0;color:var(--muted)}
+main{max-width:1500px;margin:auto;padding:12px 28px 36px;display:grid;gap:16px}.grid{display:grid;grid-template-columns:360px 1fr;gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 3px 14px var(--shadow)}
+label{display:block;font-size:13px;font-weight:650;margin:0 0 6px} input,select,button,textarea{font:inherit} input[type=text],input[type=number],input[type=date],select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--input)} input[type=checkbox]{transform:scale(1.08)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stack>*+*{margin-top:12px}.buttons{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--input);border-radius:10px;padding:9px 12px;cursor:pointer}.btn:hover{filter:brightness(.98)}.primary{background:var(--accent);border-color:var(--accent);color:white}.danger{border-color:#fecaca;color:var(--red)}
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mode label{border:1px solid var(--line);padding:10px;border-radius:10px;font-weight:500;cursor:pointer}.mode input{margin-right:6px}
+.summary{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:10px}.metric{border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--panel)}.metric b{display:block;font-size:22px;margin-top:3px}.metric span{font-size:12px;color:var(--muted)}
+.toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.toolbar-left,.toolbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.calendar{overflow:auto}.calgrid{min-width:880px;display:grid;grid-template-columns:repeat(7,1fr);gap:8px}.weekday{font-weight:750;color:var(--muted);font-size:12px;padding:4px 7px;text-transform:uppercase}.day{border:1px solid var(--line);border-radius:12px;min-height:116px;padding:9px;background:var(--panel);cursor:pointer;transition:.12s}.day:hover{transform:translateY(-1px);box-shadow:0 3px 9px rgba(0,0,0,.05)}.day.other{opacity:.45}.day .date{display:flex;justify-content:space-between;gap:8px}.day .num{font-size:14px;font-weight:750}.badge{font-size:11px;border-radius:999px;padding:3px 6px;white-space:nowrap}.work{background:#ecfdf5;color:#166534}.off{background:#f3f4f6;color:#4b5563}.forced{background:#fff7ed;color:#9a3412}.day.workday{border-color:#bbf7d0}.day.offday{background:var(--soft)}.day .hours{font-size:20px;font-weight:750;margin-top:12px}.day .shiftname{color:var(--muted);font-size:12px;margin-top:2px}.day .note{font-size:11px;color:var(--orange);margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.partial{background:#fff7ed;color:#9a3412}.overtime{background:#f5f3ff;color:#6d28d9}.day.partialday{border-color:#fed7aa}.day.overtimeday{border-color:#ddd6fe}.day.actualday{box-shadow:inset 0 0 0 2px #86efac}.fact-row{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:8px;font-size:11px}.fact-row label{margin:0;font-size:11px;font-weight:650;color:#166534}.fact-row input{margin-right:5px}.fact-money{font-weight:750;color:#166534;white-space:nowrap}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--muted);align-items:center}.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}.legend .lwork{background:#bbf7d0}.legend .loff{background:#e5e7eb}.legend .lforced{background:#fed7aa}
+table{width:100%;border-collapse:collapse} th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:13px} th{font-size:12px;color:var(--muted);font-weight:700}.right{text-align:right}.center{text-align:center}.empty{padding:28px;text-align:center;color:var(--muted)}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.42);display:none;align-items:center;justify-content:center;padding:18px;z-index:10}.overlay.open{display:flex}.modal{background:var(--panel);border-radius:16px;max-width:520px;width:100%;padding:19px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.18)}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:start}.close{border:none;background:transparent;font-size:25px;cursor:pointer}.typegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.typegrid label{border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer}.typegrid input{margin-right:7px}.warn{font-size:12px;color:var(--orange);margin-top:6px}
+@media(max-width:1050px){.grid{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,1fr)}}
+
+@media(max-width:700px){
+  header{padding:14px 12px 8px}.headbar{align-items:center}.headbar h1{font-size:22px}.headbar .btn{padding:8px 10px}main{padding:8px 12px 24px;gap:10px}.panel{padding:12px;border-radius:12px}.grid{gap:10px}.row{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr;gap:8px}.metric{padding:10px}.metric b{font-size:18px}.calgrid{min-width:0;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.weekday{font-size:10px;padding:3px 2px;text-align:center}.day{min-height:96px;padding:6px;border-radius:9px}.day .num{font-size:12px}.day .hours{font-size:17px;margin-top:7px}.day .shiftname{font-size:10px}.day .badge{font-size:9px;padding:2px 4px;max-width:72px;overflow:hidden;text-overflow:ellipsis}.fact-row{display:block}.fact-row label{display:block;margin-top:5px}.fact-money{display:block;margin-top:3px}.toolbar{align-items:flex-start}.toolbar-right .btn{padding:7px 9px}.modal{max-height:calc(100vh - 24px);overflow:auto;padding:14px}.typegrid{grid-template-columns:1fr}.buttons .btn{flex:1 1 auto}
+}
+@media(max-width:420px) and (orientation:portrait){.summary{grid-template-columns:1fr}.day{min-height:88px}.day .shiftname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.legend{flex-wrap:wrap;gap:7px;font-size:10px}}
+@media(min-width:701px) and (max-width:1000px){.grid{grid-template-columns:1fr}.calgrid{min-width:0}}
+@media(max-width:900px) and (orientation:landscape){header{padding:10px 16px 6px}main{padding:8px 16px 18px}.day{min-height:92px}.day .hours{font-size:16px}.panel{padding:12px}}
+
+.auth-overlay{position:fixed;inset:0;background:rgba(15,23,42,.62);display:none;align-items:center;justify-content:center;padding:14px;z-index:30;backdrop-filter:blur(3px)}
+.auth-overlay.open{display:flex}.auth-card{background:var(--panel);width:min(440px,100%);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 24px 80px rgba(0,0,0,.25)}.auth-title{font-size:24px;font-weight:800;margin:0 0 6px}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:16px 0 12px}.auth-tabs button{border:1px solid var(--line);background:var(--input);padding:10px;border-radius:10px;cursor:pointer}.auth-tabs button.active{background:var(--accent);border-color:var(--accent);color:#fff}.auth-message{font-size:12px;color:var(--muted);margin-top:9px;min-height:18px}.auth-user{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.cloud-status{font-size:12px;color:var(--muted)}.install-btn{display:none}.auth-links{display:flex;justify-content:space-between;gap:8px;margin-top:10px}.link-btn{border:0;background:none;color:var(--accent);cursor:pointer;padding:4px 0}.ios-help{font-size:12px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;display:none}
+@media(max-width:700px){.auth-card{padding:15px;border-radius:14px}.auth-title{font-size:21px}.headbar{gap:10px}.auth-user{justify-content:flex-end}.cloud-status{width:100%}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<header><div class="headbar"><div><h1>График смен + зарплата</h1><p>Гибридный график: базовая периодичность + ручные исключения для отдельных дней.</p><div class="device-pill" id="deviceInfo"></div></div><div class="auth-user"><span class="cloud-status" id="cloudStatus">Гостевой режим · только это устройство</span><button class="btn install-btn" id="installBtn" type="button">📲 Установить</button><button class="btn" id="loginBtn" type="button">Войти</button><button class="btn" id="themeToggle" type="button" aria-label="Переключить тему">🌙 Тёмная тема</button></div></div></header>
+<main>
+<div class="grid">
+<section class="panel stack">
+<h2>Настройки графика</h2>
+<div class="row"><div><label for="start">Начало периода</label><input id="start" type="date"></div><div><label for="months">Месяцев</label><input id="months" type="number" min="1" max="24" value="1"></div></div>
+<div><label>Базовый режим</label><div class="mode"><label><input type="radio" name="mode" value="pattern" checked> Цикл смен</label><label><input type="radio" name="mode" value="weekly"> По дням недели</label></div></div>
+<div id="patternBox"><label for="pattern">Периодичность / цикл</label><select id="pattern"><option value="1/1">1 рабочий / 1 выходной</option><option value="2/2" selected>2 рабочих / 2 выходных</option><option value="3/3">3 рабочих / 3 выходных</option><option value="4/2">4 рабочих / 2 выходных</option><option value="5/2">5 рабочих / 2 выходных</option><option value="custom">Свой цикл</option></select></div>
+<div id="customPattern" style="display:none"><label>Свой цикл (W = работа, O = выходной)</label><input id="customCycle" type="text" value="WWOO" maxlength="31" placeholder="WWOOOOWW"></div>
+<div id="weeklyBox" style="display:none"><label>Рабочие дни недели</label><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;font-size:13px" id="weekChecks"></div></div>
+<div><label><input id="hardAfterEdit" type="checkbox"> Жёстко продолжать график после последнего ручного дня</label><div class="warn">При включении последний изменённый вручную день становится точкой отсчёта: следующий день начинается с первого рабочего шага выбранного цикла.</div></div>
+<div>
+<label>Типы смен и диапазоны часов</label>
+<div id="shiftTypes" style="display:grid;gap:8px"></div>
+<button type="button" class="btn" id="addShift" style="margin-top:8px">＋ Добавить вариант смены</button>
+<div class="warn">Первый вариант используется как основная смена графика. Диапазон определяет подпись дня автоматически. Например: «Выходной» 0–0, «Неполная» 0,01–13,99, «Основная» 14–14.</div>
+</div>
+<div class="row"><div><label for="rateType">Расчёт ставки</label><select id="rateType"><option value="hour">Почасовая</option><option value="shift">За смену</option><option value="month">Оклад за месяц</option></select></div><div><label for="rate">Ставка / оклад</label><input id="rate" type="number" min="0" step="0.01" value="200"></div></div>
+<div class="row"><div><label for="bonus">Премия, ₽</label><input id="bonus" type="number" min="0" step="0.01" value="0"></div><div><label for="tax">Налог, %</label><input id="tax" type="number" min="0" max="100" step="0.1" value="13"></div></div>
+<div><label><input id="autoSave" type="checkbox" checked> Автосохранение в браузере</label></div>
+<div class="buttons"><button class="btn primary" id="recalc">Пересчитать</button><button class="btn" id="saveBtn">Сохранить</button><button class="btn" id="loadBtn">Загрузить</button><button class="btn danger" id="clearBtn">Сбросить</button></div>
+</section>
+<section class="panel stack">
+<div class="toolbar"><div><h2 id="periodTitle">Календарь</h2><div class="legend"><span><i class="lwork"></i> работа</span><span><i class="loff"></i> выходной</span><span><i class="lforced"></i> ручное изменение</span></div></div><div class="toolbar-right"><button class="btn" id="prev">←</button><button class="btn" id="today">Сегодня</button><button class="btn" id="next">→</button></div></div>
+<div class="calendar"><div class="calgrid" id="calendar"></div></div>
+<div class="warn">Нажмите на любой день, чтобы вручную сделать его рабочим/выходным и задать отдельную длительность смены. Ручное изменение имеет приоритет над шаблоном.</div>
+</section>
+</div>
+<section class="panel"><div class="summary"><div class="metric"><span>Рабочих дней по графику</span><b id="mDays">0</b></div><div class="metric"><span>Часы по графику</span><b id="mHours">0</b></div><div class="metric"><span>Начислено по графику</span><b id="mGross">0 ₽</b></div><div class="metric"><span>После налога</span><b id="mNet">0 ₽</b></div><div class="metric"><span>Налог</span><b id="mTax">0 ₽</b></div></div><div style="margin-top:12px" class="summary"><div class="metric"><span>По факту заработано</span><b id="mActualEarned">0 ₽</b></div><div class="metric"><span>Выведено</span><b id="mWithdrawn">0 ₽</b></div><div class="metric"><span>Осталось вывести</span><b id="mRemaining">0 ₽</b></div></div></section>
+<section class="panel"><div class="toolbar"><h2 style="margin:0">Детализация</h2><button class="btn" id="exportCsv">Экспорт CSV</button></div><div id="details" style="margin-top:12px"></div></section>
+</main>
+
+
+<div class="auth-overlay" id="authOverlay"><div class="auth-card">
+  <div class="auth-title">График смен</div><p>Войдите для синхронизации графика между устройствами. Для просмотра можно продолжить без регистрации.</p>
+  <div class="auth-tabs"><button id="tabLogin" class="active" type="button">Войти</button><button id="tabRegister" type="button">Регистрация</button></div>
+  <div class="stack">
+    <div id="nameWrap" style="display:none"><label for="authName">Имя</label><input id="authName" type="text" maxlength="80" placeholder="Например, Алексей"></div>
+    <div><label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+    <div><label for="authPassword">Пароль</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Минимум 6 символов"></div>
+    <div class="buttons"><button class="btn primary" id="authSubmit" type="button">Войти</button><button class="btn" id="guestBtn" type="button">Продолжить без входа</button></div>
+    <div class="auth-links"><button class="link-btn" id="resetPassword" type="button">Забыли пароль?</button><button class="link-btn" id="authClose" type="button" style="display:none">Закрыть</button></div>
+    <div class="auth-message" id="authMessage"></div><div class="ios-help" id="iosHelp">На iPhone: откройте сайт в Safari → «Поделиться» → «На экран Домой».</div>
+  </div>
+</div></div>
+
+<div class="overlay" id="overlay"><div class="modal">
+<div class="modal-head"><div><h2 id="modalTitle">День</h2><p id="modalSubtitle"></p></div><button class="close" id="closeModal">×</button></div>
+<div class="typegrid"><label><input type="radio" name="dayType" value="auto" checked> По шаблону</label><label><input type="radio" name="dayType" value="work"> Сделать рабочим</label><label><input type="radio" name="dayType" value="off"> Сделать выходным</label></div>
+<div class="row"><div><label for="dayHours">Часов</label><input id="dayHours" type="number" min="0" step="0.25" value="14"></div><div><label for="dayShift">Вариант смены</label><select id="dayShift"></select></div></div>
+<div style="margin-top:12px"><label for="dayNote">Заметка</label><input id="dayNote" type="text" maxlength="120" placeholder="Например: подмена, праздник, отпуск"></div>
+<div class="buttons" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="cancelDay">Отмена</button><button class="btn primary" id="applyDay">Применить</button></div>
+</div></div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const DOW=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const STORAGE_KEY='shiftPlannerStateV6CloudGuest';
+const CLOUD_TABLE='planner_data';
+const LEGACY_THEME_KEY='shiftPlannerTheme';
+let cloud=null, currentUser=null, cloudChannel=null, cloudHydrating=false, cloudSaveTimer=null, installPrompt=null, authMode='login';
+const LEGACY_KEYS=['shiftPlannerStateV5R','shiftPlannerStateV4','shiftPlannerStateV3','shiftPlannerStateV2','shiftPlannerState'];
+const state={overrides:{},actual:{},view:new Date()}; let currentDate=null;
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseDate=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+function mondayIndex(d){return (d.getDay()+6)%7}
+function detectDevice(){
+  const mobile=window.matchMedia('(max-width: 700px)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const orientation=window.matchMedia('(orientation: landscape)').matches?'горизонтальный':'вертикальный';
+  return `${mobile?'Телефон/планшет':'ПК/ноутбук'} · ${orientation}`;
+}
+function applyTheme(theme){
+  const dark=theme==='dark';
+  document.documentElement.dataset.theme=dark?'dark':'light';
+  const b=$('#themeToggle'); if(b)b.textContent=dark?'☀️ Светлая тема':'🌙 Тёмная тема';
+  localStorage.setItem(LEGACY_THEME_KEY,dark?'dark':'light');
+}
+function initTheme(){
+  const saved=localStorage.getItem(LEGACY_THEME_KEY);
+  applyTheme(saved || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+}
+
+function defaultShiftTypes(){return [
+  {name:'Основная смена',hours:14,min:14,max:14},
+  {name:'Неполная смена',hours:8,min:0.01,max:13.99},
+  {name:'Выходной',hours:0,min:0,max:0}
+]}
+function normalizeShiftTypes(arr){
+  if(!Array.isArray(arr)||!arr.length)return defaultShiftTypes();
+  return arr.map((x,i)=>({name:String(x?.name||`Смена ${i+1}`),hours:Math.max(0,Number(x?.hours)||0),min:Math.max(0,Number(x?.min)),max:Math.max(0,Number(x?.max))})).map(x=>x.min>x.max?({...x,min:x.max,max:x.min}):x);
+}
+function getShiftTypes(){
+  return [...document.querySelectorAll('#shiftTypes .shift-row')].map(r=>({
+    name:r.querySelector('.st-name').value.trim()||'Без названия',
+    hours:Math.max(0,Number(r.querySelector('.st-hours').value)||0),
+    min:Math.max(0,Number(r.querySelector('.st-min').value)||0),
+    max:Math.max(0,Number(r.querySelector('.st-max').value)||0)
+  }));
+}
+function renderShiftTypes(types=defaultShiftTypes()){
+  types=normalizeShiftTypes(types);
+  $('#shiftTypes').innerHTML=types.map((x,i)=>`<div class="shift-row" style="display:grid;grid-template-columns:1.35fr .85fr .8fr .8fr auto;gap:7px;align-items:end;border:1px solid var(--line);padding:8px;border-radius:10px;background:var(--soft)">
+    <div><label style="font-size:11px;margin-bottom:4px">Название</label><input class="st-name" type="text" value="${escapeAttr(x.name)}"></div>
+    <div><label style="font-size:11px;margin-bottom:4px">Норма, ч</label><input class="st-hours" type="number" min="0" step="0.25" value="${x.hours}"></div>
+    <div><label style="font-size:11px;margin-bottom:4px">От, ч</label><input class="st-min" type="number" min="0" step="0.25" value="${x.min}"></div>
+    <div><label style="font-size:11px;margin-bottom:4px">До, ч</label><input class="st-max" type="number" min="0" step="0.25" value="${x.max}"></div>
+    <button type="button" class="btn danger st-del" data-i="${i}" ${types.length<=1?'disabled':''}>×</button>
+  </div>`).join('');
+  $$('#shiftTypes .shift-row input').forEach(el=>el.addEventListener('input',()=>{saveNow();refreshShiftSelects();renderCalendar();renderSummaryAndDetails()}));
+  $$('#shiftTypes .st-del').forEach(btn=>btn.onclick=()=>{const arr=getShiftTypes();if(arr.length>1){arr.splice(+btn.dataset.i,1);renderShiftTypes(arr);saveNow();refreshShiftSelects();renderCalendar();renderSummaryAndDetails()}});
+  refreshShiftSelects();
+}
+function refreshShiftSelects(){
+  const types=getShiftTypes();
+  const cur=$('#dayShift')?.value;
+  $('#dayShift').innerHTML=types.map((x,i)=>`<option value="${i}">${escapeHtml(x.name)} — ${x.hours} ч</option>`).join('');
+  if(cur!==undefined && types[cur])$('#dayShift').value=cur;
+}
+function getSettings(){
+  const shifts=getShiftTypes();
+  const main=shifts[0]||defaultShiftTypes()[0];
+  return {start:$('#start').value,months:Math.max(1,+$('#months').value||1),mode:$('input[name=mode]:checked').value,pattern:$('#pattern').value,customCycle:$('#customCycle').value,weekly:$$('#weekChecks input:checked').map(x=>+x.value),shiftTypes:shifts,shiftName:main.name,hours:main.hours,rateType:$('#rateType').value,rate:Math.max(0,+$('#rate').value||0),bonus:Math.max(0,+$('#bonus').value||0),tax:Math.min(100,Math.max(0,+$('#tax').value||0)),autoSave:$('#autoSave').checked,hardAfterEdit:$('#hardAfterEdit').checked};
+}
+function payload(){return {version:6,settings:getSettings(),overrides:state.overrides,actual:state.actual,view:`${state.view.getFullYear()}-${pad(state.view.getMonth()+1)}`};}
+function saveLocal(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(payload()));return true}catch(e){console.warn('Локальное сохранение не удалось',e);return false}}
+async function saveCloud(){if(!cloud||!currentUser||cloudHydrating)return false;try{const data=payload();const {error}=await cloud.from(CLOUD_TABLE).upsert({user_id:currentUser.id,data,updated_at:new Date().toISOString()});if(error)throw error;setCloudStatus('☁️ Синхронизировано');return true}catch(e){console.warn('Облачное сохранение не удалось',e);setCloudStatus('⚠️ Ошибка синхронизации');return false}}
+function saveNow(){const ok=saveLocal();if(ok && currentUser){clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(saveCloud,180)}return ok}
+let saveTimer=null;
+function scheduleSave(){if(!$('#autoSave').checked)return;clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,80)}
+function supabaseReady(){return !!(window.supabase?.createClient && window.SUPABASE_CONFIG?.url && window.SUPABASE_CONFIG?.publishableKey)}
+function setCloudStatus(text){const el=$('#cloudStatus');if(el)el.textContent=text}
+function openAuth(){if($('#authOverlay'))$('#authOverlay').classList.add('open');$('#authMessage').textContent='';updateAuthMode()}
+function closeAuth(){if($('#authOverlay'))$('#authOverlay').classList.remove('open')}
+function updateAuthMode(){
+  const reg=authMode==='register';$('#tabLogin').classList.toggle('active',!reg);$('#tabRegister').classList.toggle('active',reg);$('#nameWrap').style.display=reg?'block':'none';$('#authSubmit').textContent=reg?'Зарегистрироваться':'Войти';$('#authPassword').autocomplete=reg?'new-password':'current-password';
+}
+function authMessage(text,kind=''){const e=$('#authMessage');e.textContent=text;e.style.color=kind==='error'?'var(--red)':'var(--muted)'}
+async function performAuth(){
+  if(!supabaseReady()){authMessage('Supabase ещё не настроен: заполните config.js. Гостевой режим работает без него.','error');return}
+  const email=$('#authEmail').value.trim(),password=$('#authPassword').value; if(!email||!password){authMessage('Введите email и пароль.','error');return}
+  $('#authSubmit').disabled=true;
+  try{
+    if(authMode==='register'){const name=$('#authName').value.trim();const {data,error}=await cloud.auth.signUp({email,password,options:{data:{display_name:name},emailRedirectTo:location.href}});if(error)throw error;authMessage(data.session?'Аккаунт создан.':'Аккаунт создан. Проверьте почту для подтверждения.');}
+    else{const {error}=await cloud.auth.signInWithPassword({email,password});if(error)throw error;}
+  }catch(e){authMessage(e.message||'Ошибка авторизации','error')}finally{$('#authSubmit').disabled=false}
+}
+async function resetPassword(){if(!supabaseReady()){authMessage('Сначала настройте Supabase.','error');return}const email=$('#authEmail').value.trim();if(!email){authMessage('Сначала введите email.','error');return}const {error}=await cloud.auth.resetPasswordForEmail(email,{redirectTo:location.href});authMessage(error?error.message:'Ссылка для сброса отправлена на почту.',error?'error':'')}
+function localPayload(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return null;try{return JSON.parse(raw)}catch{return null}}
+function applyPayload(x){if(!x)return;const s=x.settings||{};if(s.start!==undefined)$('#start').value=s.start;if(s.months!==undefined)$('#months').value=s.months;if(s.mode){const r=$(`input[name=mode][value="${s.mode}"]`);if(r)r.checked=true}if(s.pattern!==undefined)$('#pattern').value=s.pattern;if(s.customCycle!==undefined)$('#customCycle').value=s.customCycle;if(s.rateType!==undefined)$('#rateType').value=s.rateType;if(s.rate!==undefined)$('#rate').value=s.rate;if(s.bonus!==undefined)$('#bonus').value=s.bonus;if(s.tax!==undefined)$('#tax').value=s.tax;if(s.autoSave!==undefined)$('#autoSave').checked=!!s.autoSave;if(s.hardAfterEdit!==undefined)$('#hardAfterEdit').checked=!!s.hardAfterEdit;renderShiftTypes(s.shiftTypes||defaultShiftTypes());if(Array.isArray(s.weekly))$$('#weekChecks input').forEach(x=>x.checked=s.weekly.includes(+x.value));state.overrides=x.overrides&&typeof x.overrides==='object'?x.overrides:{};state.actual=x.actual&&typeof x.actual==='object'?x.actual:{};if(/^\d{4}-\d{2}$/.test(x.view)){const [y,m]=x.view.split('-').map(Number);state.view=new Date(y,m-1,1)}else if($('#start').value)state.view=parseDate($('#start').value);applyModeUI();render()}
+async function fetchCloudData(){if(!cloud||!currentUser)return null;const {data,error}=await cloud.from(CLOUD_TABLE).select('data,updated_at').eq('user_id',currentUser.id).maybeSingle();if(error)throw error;return data?.data||null}
+async function hydrateFromCloud(){cloudHydrating=true;try{const remote=await fetchCloudData();const local=localPayload();if(remote){applyPayload(remote);saveLocal();setCloudStatus('☁️ Синхронизировано');}else if(local){await saveCloud();setCloudStatus('☁️ Локальные данные загружены в облако');}else{saveLocal();await saveCloud();setCloudStatus('☁️ Синхронизировано');}}catch(e){console.warn(e);setCloudStatus('⚠️ Облако недоступно — локальный режим')}finally{cloudHydrating=false}}
+function subscribeCloud(){if(!cloud||!currentUser)return;if(cloudChannel)cloud.removeChannel(cloudChannel);cloudChannel=cloud.channel('planner-data-'+currentUser.id).on('postgres_changes',{event:'*',schema:'public',table:CLOUD_TABLE,filter:'user_id=eq.'+currentUser.id},payload=>{if(payload.new?.data && payload.new.user_id===currentUser?.id){cloudHydrating=true;applyPayload(payload.new.data);saveLocal();cloudHydrating=false;setCloudStatus('☁️ Синхронизировано');}}).subscribe()}
+async function signedOut(){currentUser=null;if(cloudChannel&&cloud){await cloud.removeChannel(cloudChannel);cloudChannel=null}setCloudStatus('Гостевой режим · только это устройство');$('#loginBtn').textContent='Войти';$('#authClose').style.display='none'}
+async function signedIn(user){currentUser=user;localStorage.setItem('shiftPlannerAuthChoice','account');closeAuth();$('#loginBtn').textContent='Выйти';$('#authClose').style.display='inline-block';setCloudStatus('☁️ Подключение…');await hydrateFromCloud();subscribeCloud()}
+async function initCloud(){
+  if(!supabaseReady()){setCloudStatus('Гостевой режим · Supabase не настроен');return}
+  cloud=window.supabase.createClient(SUPABASE_CONFIG.url,SUPABASE_CONFIG.publishableKey);
+  const {data:{session}}=await cloud.auth.getSession();if(session?.user)await signedIn(session.user);
+  cloud.auth.onAuthStateChange(async (event,session)=>{if(session?.user && event!=='INITIAL_SESSION')await signedIn(session.user);else if(!session?.user && event!=='INITIAL_SESSION')await signedOut()});
+}
+
+function load(){
+  const keys=[STORAGE_KEY,...LEGACY_KEYS]; let raw=null;
+  for(const k of keys){raw=localStorage.getItem(k);if(raw)break}
+  if(!raw){setDefaultStart();renderShiftTypes();return false}
+  try{
+    const x=JSON.parse(raw),s=x.settings||{};
+    if(s.start!==undefined)$('#start').value=s.start;
+    if(s.months!==undefined)$('#months').value=s.months;
+    if(s.mode){const r=$(`input[name=mode][value="${s.mode}"]`);if(r)r.checked=true}
+    if(s.pattern!==undefined)$('#pattern').value=s.pattern;
+    if(s.customCycle!==undefined)$('#customCycle').value=s.customCycle;
+    if(s.rateType!==undefined)$('#rateType').value=s.rateType;
+    if(s.rate!==undefined)$('#rate').value=s.rate;
+    if(s.bonus!==undefined)$('#bonus').value=s.bonus;
+    if(s.tax!==undefined)$('#tax').value=s.tax;
+    if(s.autoSave!==undefined)$('#autoSave').checked=!!s.autoSave;
+    if(s.hardAfterEdit!==undefined)$('#hardAfterEdit').checked=!!s.hardAfterEdit;
+    const legacyName=s.shiftName||'Основная смена', legacyHours=s.hours===undefined?8:Number(s.hours)||0;
+    let shifts=s.shiftTypes;
+    if(!Array.isArray(shifts)||!shifts.length) shifts=[{name:legacyName,hours:legacyHours,min:legacyHours,max:legacyHours},{name:'Неполная смена',hours:Math.max(0,Math.min(legacyHours-1,8)),min:0.01,max:Math.max(0,legacyHours-0.01)},{name:'Выходной',hours:0,min:0,max:0}];
+    renderShiftTypes(shifts);
+    if(Array.isArray(s.weekly))$$('#weekChecks input').forEach(x=>x.checked=s.weekly.includes(+x.value));
+    state.overrides=x.overrides&&typeof x.overrides==='object'?x.overrides:{};
+    state.actual=x.actual&&typeof x.actual==='object'?x.actual:{};
+    if(/^\d{4}-\d{2}$/.test(x.view)){const [y,m]=x.view.split('-').map(Number);state.view=new Date(y,m-1,1)} else state.view=parseDate($('#start').value);
+    applyModeUI();
+    // migrate immediately to the current key
+    saveNow();
+    return true;
+  }catch(e){console.warn('Не удалось загрузить сохранение',e);setDefaultStart();renderShiftTypes();return false}
+}
+function setDefaultStart(){const d=new Date();$('#start').value=iso(new Date(d.getFullYear(),d.getMonth(),1));state.view=new Date(d.getFullYear(),d.getMonth(),1);renderShiftTypes(defaultShiftTypes())}
+function patternArray(){const p=$('#pattern').value;if(p==='custom')return ($('#customCycle').value.toUpperCase().match(/[WO]/g)||[]);const [w,o]=p.split('/').map(Number);return [...Array(w).fill('W'),...Array(o).fill('O')]}
+function lastManualDate(){const ks=Object.keys(state.overrides);if(!ks.length)return null;return ks.sort().at(-1)}
+function baseForDate(d){
+  const s=getSettings(),start=parseDate(s.start),diff=Math.floor((d-start)/86400000);if(diff<0)return 'O';
+  if(s.mode==='weekly')return s.weekly.includes(mondayIndex(d))?'W':'O';
+  const a=patternArray();if(!a.length)return 'O';
+  if(s.hardAfterEdit){
+    const last=lastManualDate();
+    if(last && iso(d)>last){const ld=parseDate(last);const nd=Math.floor((d-ld)/86400000);return a[(nd-1)%a.length]}
+  }
+  return a[diff%a.length];
+}
+function shiftForHours(hours,s){
+  const t=Number(hours)||0;
+  // Prefer exact range; on overlaps choose the narrowest range first.
+  const matches=s.shiftTypes.map((x,i)=>({x,i,w:x.max-x.min})).filter(z=>t>=z.x.min-1e-9 && t<=z.x.max+1e-9).sort((a,b)=>a.w-b.w);
+  return matches[0]?.x || null;
+}
+function statusFor(hours,s,plannedWork){
+  const t=Number(hours)||0;
+  const sh=shiftForHours(t,s);
+  if(t===0)return {kind:'off',label:sh?.name||'Выходной'};
+  if(sh)return {kind:sh===s.shiftTypes[0]?'work':(sh.name==='Неполная смена'?'partial':'custom'),label:sh.name};
+  if(plannedWork && t<s.hours)return {kind:'partial',label:'Неполная смена'};
+  if(t>s.hours)return {kind:'overtime',label:'Переработка'};
+  return {kind:'work',label:s.shiftName};
+}
+function dayData(d){
+  const k=iso(d),ov=state.overrides[k],b=baseForDate(d),s=getSettings();
+  const type=ov?.type||'auto';
+  const plannedWork=type==='work'||(type==='auto'&&b==='W');
+  let hours=0;
+  if(plannedWork){const stored=Number(ov?.hours);hours=Number.isFinite(stored)&&stored>0?stored:s.hours}
+  const work=plannedWork&&hours>0;
+  const status=statusFor(hours,s,plannedWork);
+  let shift=ov?.shift;
+  if(hours===0)shift='Выходной';
+  else if(!shift){const sh=shiftForHours(hours,s);shift=sh?.name||s.shiftName}
+  return {date:k,type,plannedWork,work,hours,shift,note:ov?.note||'',manual:!!ov,status:status.kind,statusLabel:status.label,target:s.hours};
+}
+function periodDates(){const s=getSettings(),start=parseDate(s.start);const end=new Date(start.getFullYear(),start.getMonth()+s.months,start.getDate());const ds=[];for(let d=new Date(start);d<end;d.setDate(d.getDate()+1))ds.push(new Date(d));return ds}
+function renderCalendar(){
+  const days=periodDates();if(!days.length)return;const viewMonth=state.view.getMonth(),viewYear=state.view.getFullYear();
+  $('#periodTitle').textContent=new Intl.DateTimeFormat('ru-RU',{month:'long',year:'numeric'}).format(state.view).replace(/^./,c=>c.toUpperCase());
+  const start=new Date(viewYear,viewMonth,1),end=new Date(viewYear,viewMonth+1,0);let html=DOW.map(x=>`<div class="weekday">${x}</div>`).join('');
+  for(let i=0;i<mondayIndex(start);i++)html+='<div></div>';
+  for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+    const inPeriod=days.some(x=>iso(x)===iso(d)),x=dayData(d);
+    let badge=x.status==='off'?'выходной':x.status==='partial'?'неполная':x.status==='overtime'?'переработка':x.status==='custom'?x.statusLabel:'работа';
+    if(x.manual)badge=`ручн. · ${badge}`;
+    const badgeClass=x.status==='off'?'off':x.status==='partial'?'partial':x.status==='overtime'?'overtime':'work';
+    const dayClass=x.status==='off'?'offday':x.status==='partial'?'partialday':x.status==='overtime'?'overtimeday':'workday';
+    const act=state.actual[x.date]||{};
+    html+=`<div class="day ${dayClass} ${inPeriod?'':'other'} ${act.worked?'actualday':''}" data-date="${iso(d)}"><div class="date"><span class="num">${d.getDate()}</span><span class="badge ${x.manual?'forced':badgeClass}">${escapeHtml(badge)}</span></div>${inPeriod?`<div class="hours">${x.hours.toLocaleString('ru-RU')} ч</div><div class="shiftname">${escapeHtml(x.shift)}</div>${x.note?`<div class="note">${escapeHtml(x.note)}</div>`:''}<div class="fact-row"><label><input type="checkbox" class="worked-check" data-date="${x.date}" ${act.worked?'checked':''}> отработано</label>${act.worked?`<span class="fact-money">${money(dayNetEarning(x))}</span>`:''}</div>${act.worked?`<div class="fact-row"><label><input type="checkbox" class="withdrawn-check" data-date="${x.date}" ${act.withdrawn?'checked':''}> выведено</label></div>`:''}`:''}</div>`
+  }
+  $('#calendar').innerHTML=html;$$('.day').forEach(el=>el.onclick=(e)=>{if(e.target.matches('input'))return;openDay(el.dataset.date)});bindFactChecks();
+}
+function plannedGrossForDays(days,s){
+  let gross=0;
+  if(s.rateType==='hour') gross=days.reduce((a,x)=>a+x.hours,0)*s.rate;
+  else if(s.rateType==='shift') gross=days.reduce((a,x)=>a+s.rate*(s.hours>0?Math.min(1,x.hours/s.hours):0),0);
+  else {
+    const months=new Set(days.map(x=>x.date.slice(0,7)));
+    for(const m of months){
+      const md=days.filter(x=>x.date.slice(0,7)===m&&x.work);
+      const totalHours=md.reduce((a,x)=>a+x.hours,0);
+      if(totalHours>0){ const w=days.filter(x=>x.date.slice(0,7)===m&&x.work); gross+=s.rate*(days.filter(x=>x.date.slice(0,7)===m&&x.work).length?0:0); }
+    }
+    // Monthly salary is allocated across actual working days by their share of total planned hours.
+    for(const m of months){
+      const md=days.filter(x=>x.date.slice(0,7)===m&&x.work);
+      const total=md.reduce((a,x)=>a+x.hours,0);
+      if(total>0) gross+=0;
+    }
+    // handled in dailyEarning below; gross here uses existing summary logic
+  }
+  return gross;
+}
+function dayNetEarning(x){
+  const s=getSettings();
+  let gross=0;
+  if(!x.work || x.hours<=0) return 0;
+  if(s.rateType==='hour') gross=x.hours*s.rate;
+  else if(s.rateType==='shift') gross=s.rate*(s.hours>0?Math.min(1,x.hours/s.hours):0);
+  else {
+    const all=periodDates().map(dayData).filter(d=>d.work&&d.date.slice(0,7)===x.date.slice(0,7));
+    const total=all.reduce((a,d)=>a+d.hours,0);
+    gross=total>0?s.rate*x.hours/total:0;
+  }
+  return gross*(1-s.tax/100);
+}
+function factData(days){
+  return days.filter(x=>state.actual[x.date]?.worked).map(x=>({...x,earned:dayNetEarning(x),withdrawn:!!state.actual[x.date]?.withdrawn}));
+}
+function renderSummaryAndDetails(){
+  const days=periodDates().map(dayData),work=days.filter(x=>x.work),s=getSettings(),hours=work.reduce((a,x)=>a+x.hours,0);let gross=0;
+  if(s.rateType==='hour')gross=hours*s.rate;
+  else if(s.rateType==='shift')gross=work.reduce((a,x)=>a+s.rate*(s.hours>0?Math.min(1,x.hours/s.hours):0),0);
+  else{const months=new Set(days.map(x=>x.date.slice(0,7))).size;gross=s.rate*months}
+  gross+=s.bonus;const tax=gross*s.tax/100,net=gross-tax;
+  $('#mDays').textContent=work.length;$('#mHours').textContent=hours.toLocaleString('ru-RU');$('#mGross').textContent=money(gross);$('#mTax').textContent=money(tax);$('#mNet').textContent=money(net);
+  const fact=factData(days),earned=fact.reduce((a,x)=>a+x.earned,0),withdrawn=fact.filter(x=>x.withdrawn).reduce((a,x)=>a+x.earned,0),remaining=Math.max(0,earned-withdrawn);
+  $('#mActualEarned').textContent=money(earned);$('#mWithdrawn').textContent=money(withdrawn);$('#mRemaining').textContent=money(remaining);
+  const rows=days.map(x=>{const a=state.actual[x.date]||{};return `<tr><td>${fmt(x.date)}</td><td>${escapeHtml(x.shift)}</td><td class="right">${x.hours.toLocaleString('ru-RU')}</td><td>${escapeHtml(x.statusLabel)}</td><td>${x.manual?'Ручное':'Шаблон'}</td><td class="center"><input type="checkbox" class="worked-check" data-date="${x.date}" ${a.worked?'checked':''}></td><td class="right">${a.worked?money(dayNetEarning(x)):'—'}</td><td class="center">${a.worked?`<input type="checkbox" class="withdrawn-check" data-date="${x.date}" ${a.withdrawn?'checked':''}>`:'—'}</td><td>${escapeHtml(x.note)}</td></tr>`}).join('');
+  $('#details').innerHTML=rows?`<div style="overflow:auto"><table><thead><tr><th>Дата</th><th>Смена</th><th class="right">Часы</th><th>Тип</th><th>Источник</th><th>Отработано</th><th class="right">Заработано</th><th>Выведено</th><th>Заметка</th></tr></thead><tbody>${rows}</tbody></table></div><div class="warn" style="margin-top:10px">«Заработано» — сумма после налога для конкретного отмеченного дня. Для оклада сумма дня распределяется пропорционально часам этого дня внутри месяца.</div>`:'<div class="empty">В выбранном периоде нет дней.</div>';
+  bindFactChecks();
+}
+function bindFactChecks(){
+  $$('.worked-check').forEach(cb=>cb.onchange=()=>{const d=cb.dataset.date;if(cb.checked){if(!state.actual[d])state.actual[d]={};state.actual[d].worked=true;}else{delete state.actual[d];}render();saveNow();});
+  $$('.withdrawn-check').forEach(cb=>cb.onchange=()=>{const d=cb.dataset.date;if(!state.actual[d])state.actual[d]={worked:true};state.actual[d].worked=true;state.actual[d].withdrawn=cb.checked;render();saveNow();});
+}
+function money(v){return `${v.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})} ₽`}
+function fmt(s){return new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}).format(parseDate(s))}
+function escapeHtml(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeAttr(x){return escapeHtml(x)}
+function render(){applyModeUI();refreshShiftSelects();renderCalendar();renderSummaryAndDetails();scheduleSave()}
+function applyModeUI(){const m=$('input[name=mode]:checked').value;$('#patternBox').style.display=m==='pattern'?'block':'none';$('#weeklyBox').style.display=m==='weekly'?'block':'none';$('#customPattern').style.display=$('#pattern').value==='custom'&&m==='pattern'?'block':'none'}
+function openDay(k){
+  currentDate=k;const d=parseDate(k),x=dayData(d),s=getSettings();$('#modalTitle').textContent=fmt(k);$('#modalSubtitle').textContent=`Базово по шаблону: ${baseForDate(d)==='W'?'рабочий день':'выходной'}`;
+  $(`input[name=dayType][value="${x.type}"]`).checked=true;$('#dayHours').value=x.hours;refreshShiftSelects();
+  let idx=s.shiftTypes.findIndex(z=>z.name===x.shift);if(idx<0)idx=0;$('#dayShift').value=String(idx);$('#dayNote').value=x.note;$('#overlay').classList.add('open');
+}
+function closeModal(){$('#overlay').classList.remove('open');currentDate=null}
+function exportCsv(){const rows=[['Дата','Статус','Смена','Часы','Ручное изменение','Отработано','Заработано','Выведено','Осталось вывести за день','Заметка'],...periodDates().map(d=>{const x=dayData(d),a=state.actual[x.date]||{},earned=a.worked?dayNetEarning(x):0;return[x.date,x.statusLabel,x.shift,x.hours,x.manual?'Да':'Нет',a.worked?'Да':'Нет',earned.toFixed(2),a.withdrawn?'Да':'Нет',a.worked&&!a.withdrawn?earned.toFixed(2):'0.00',x.note]})];const csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);const now=new Date();const stamp=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;a.download=`grafik_${stamp}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+$('#recalc').onclick=()=>{render();saveNow()};
+$('#saveBtn').onclick=()=>{saveNow();alert('Сохранено в браузере.')};
+$('#loadBtn').onclick=()=>{if(load()){applyModeUI();render()}};
+$('#clearBtn').onclick=()=>{if(confirm('Сбросить настройки и все ручные изменения?')){localStorage.removeItem(STORAGE_KEY);LEGACY_KEYS.forEach(k=>localStorage.removeItem(k));location.reload()}};
+$('#addShift').onclick=()=>{const arr=getShiftTypes();arr.push({name:`Смена ${arr.length+1}`,hours:getSettings().hours||0,min:getSettings().hours||0,max:getSettings().hours||0});renderShiftTypes(arr);saveNow();renderCalendar();renderSummaryAndDetails()};
+$$('input,select').forEach(el=>el.addEventListener('change',()=>{if(el.name==='mode'||el.id==='pattern')applyModeUI();if(el.id==='start'&&el.value)state.view=parseDate(el.value);if(el.id==='weekChecks'){};refreshShiftSelects();renderCalendar();renderSummaryAndDetails();saveNow()}));
+$$('input[type=number],input[type=text],input[type=date]').forEach(el=>el.addEventListener('input',()=>{if(el.name==='mode'||el.id==='pattern')applyModeUI();if(el.id==='start'&&el.value)state.view=parseDate(el.value);refreshShiftSelects();renderCalendar();renderSummaryAndDetails();scheduleSave()}));
+$('#pattern').onchange=()=>{applyModeUI();render();saveNow()};
+$('#customCycle').oninput=()=>{render();saveNow()};
+$('#autoSave').onchange=()=>saveNow();
+$('#hardAfterEdit').onchange=()=>{render();saveNow()};
+$('#prev').onclick=()=>{state.view=new Date(state.view.getFullYear(),state.view.getMonth()-1,1);renderCalendar();saveNow()};
+$('#next').onclick=()=>{state.view=new Date(state.view.getFullYear(),state.view.getMonth()+1,1);renderCalendar();saveNow()};
+$('#today').onclick=()=>{const t=new Date();state.view=new Date(t.getFullYear(),t.getMonth(),1);renderCalendar();saveNow()};
+$('#closeModal').onclick=closeModal;$('#cancelDay').onclick=closeModal;$('#overlay').onclick=e=>{if(e.target===$('#overlay'))closeModal()};
+$$('input[name=dayType]').forEach(r=>r.addEventListener('change',()=>{
+  const target=getSettings().hours,chosen=$('input[name=dayType]:checked').value,s=getSettings();
+  if(chosen==='work'){
+    $('#dayHours').value=target;$('#dayShift').value='0';
+  }else if(chosen==='off'){
+    $('#dayHours').value=0;let oi=s.shiftTypes.findIndex(x=>x.max===0&&x.min===0);$('#dayShift').value=String(oi>=0?oi:0);
+  }
+}));
+$('#dayShift').onchange=()=>{const i=+$(`#dayShift`).value,s=getSettings(),sh=s.shiftTypes[i];if(sh)$('#dayHours').value=sh.hours};
+$('#applyDay').onclick=()=>{
+  const type=$('input[name=dayType]:checked').value,s=getSettings();
+  if(type==='auto')delete state.overrides[currentDate];
+  else if(type==='off'){let oi=s.shiftTypes.findIndex(x=>x.max===0&&x.min===0);state.overrides[currentDate]={type:'off',hours:0,shift:oi>=0?s.shiftTypes[oi].name:'Выходной',note:$('#dayNote').value};}
+  else{const entered=Math.max(0,Number($('#dayHours').value)||0),hours=entered>0?entered:s.hours,idx=+$(`#dayShift`).value,sh=s.shiftTypes[idx]?.name||s.shiftName;state.overrides[currentDate]={type:'work',hours,shift:sh,note:$('#dayNote').value};}
+  closeModal();render();saveNow();
+};
+$('#exportCsv').onclick=exportCsv;
+for(let i=0;i<7;i++)$('#weekChecks').insertAdjacentHTML('beforeend',`<label style="margin:0"><input type="checkbox" value="${i}" ${i<5?'checked':''}> ${DOW[i]}</label>`);
+initTheme();
+$('#deviceInfo').textContent=detectDevice();
+$('#themeToggle').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+window.addEventListener('resize',()=>{$('#deviceInfo').textContent=detectDevice()});
+$('#loginBtn').onclick=async()=>{if(currentUser){await cloud.auth.signOut();return}authMode='login';openAuth()};
+$('#tabLogin').onclick=()=>{authMode='login';updateAuthMode()};
+$('#tabRegister').onclick=()=>{authMode='register';updateAuthMode()};
+$('#authSubmit').onclick=performAuth;
+$('#guestBtn').onclick=()=>{localStorage.setItem('shiftPlannerAuthChoice','guest');closeAuth();setCloudStatus(supabaseReady()?'Гостевой режим · только это устройство':'Гостевой режим · Supabase не настроен')};
+$('#authClose').onclick=closeAuth;$('#resetPassword').onclick=resetPassword;
+$('#authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')performAuth()});
+window.addEventListener('keydown',e=>{if(e.key==='Escape')closeAuth()});
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#installBtn').style.display='inline-block'});
+$('#installBtn').onclick=async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('#installBtn').style.display='none'}else{showInstallHelp()}};
+function showInstallHelp(){const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent);if(ios){$('#iosHelp').style.display='block';openAuth()}else{alert('Откройте меню браузера и выберите «Установить приложение» или «Добавить на главный экран».')}}
+window.addEventListener('appinstalled',()=>{$('#installBtn').style.display='none';setCloudStatus(currentUser?'☁️ Синхронизировано':'Приложение установлено')});
+setDefaultStart();load();applyModeUI();render();
+if(/iPhone|iPad|iPod/i.test(navigator.userAgent))$('#installBtn').style.display='inline-block';
+initCloud();
+if(!localStorage.getItem('shiftPlannerAuthChoice') && !supabaseReady())openAuth();
+if(!localStorage.getItem('shiftPlannerAuthChoice') && supabaseReady())openAuth();
+window.addEventListener('beforeunload',saveNow);
+</script>
+</body></html>
