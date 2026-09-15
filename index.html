@@ -40,6 +40,9 @@ table{width:100%;border-collapse:collapse} th,td{padding:10px 8px;text-align:lef
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
+  <script>
+  console.log('SUPABASE_CONFIG:', window.SUPABASE_CONFIG);
+  </script>
 </head>
 <body>
 <header><div class="headbar"><div><h1>График смен + зарплата</h1><p>Гибридный график: базовая периодичность + ручные исключения для отдельных дней.</p><div class="device-pill" id="deviceInfo"></div></div><div class="auth-user"><span class="cloud-status" id="cloudStatus">Гостевой режим · только это устройство</span><button class="btn install-btn" id="installBtn" type="button">📲 Установить</button><button class="btn" id="loginBtn" type="button">Войти</button><button class="btn" id="themeToggle" type="button" aria-label="Переключить тему">🌙 Тёмная тема</button></div></div></header>
